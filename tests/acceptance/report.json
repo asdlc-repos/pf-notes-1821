@@ -1,0 +1,536 @@
+{
+ "schemaVersion": 2,
+ "generatedAt": "2026-10-11T05:26:21.984Z",
+ "commit": "bb69c7fe221ede47e131430ec50a3d14286a2270",
+ "baseUrl": "http://http-pf-notes-1821-development-default-3ff44084.openchoreoapis.localhost:19080/",
+ "isolation": "no container concept in the product (one team-wide list); empty-list and no-title/too-long scenarios were driven first while the team had zero notes, other scenarios assert on specific notes created for them and relative order. Only one login (test-member) exists, so all notes have author test-member.",
+ "scenarios": [
+  {
+   "feature": "F1 List and read notes",
+   "featureFile": "specs/validation/acceptance/F1-list-and-read-notes.feature",
+   "line": 6,
+   "rule": "A member sees every team note with its title, author and created date",
+   "scenario": "Notes written by two teammates appear in the list",
+   "tags": [
+    "@story-F1.1"
+   ],
+   "outcome": "blocked",
+   "steps": [
+    {
+     "text": "Dana has created a note titled \"Sprint goals\" and Priya has created a note titled \"Retro ideas\"",
+     "keyword": "Given",
+     "observed": "only one test login exists (test-member, Member); the scenario needs distinct users, so authorship/cross-user state cannot be established"
+    },
+    {
+     "text": "Mark the member opens the notes list",
+     "keyword": "When",
+     "observed": "not reached: only one test login exists (test-member, Member); the scenario needs distinct users, so authorship/cross-user state cannot be established"
+    },
+    {
+     "text": "the list shows \"Sprint goals\" with Dana as author and its created date",
+     "keyword": "Then",
+     "observed": "not reached: only one test login exists (test-member, Member); the scenario needs distinct users, so authorship/cross-user state cannot be established"
+    },
+    {
+     "text": "the list shows \"Retro ideas\" with Priya as author and its created date",
+     "keyword": "And",
+     "observed": "not reached: only one test login exists (test-member, Member); the scenario needs distinct users, so authorship/cross-user state cannot be established"
+    }
+   ]
+  },
+  {
+   "feature": "F1 List and read notes",
+   "featureFile": "specs/validation/acceptance/F1-list-and-read-notes.feature",
+   "line": 15,
+   "rule": "Notes that are not pinned are listed newest first",
+   "scenario": "The more recent note is listed above the older one",
+   "tags": [
+    "@story-F1.1"
+   ],
+   "outcome": "passed",
+   "steps": [
+    {
+     "text": "Dana created a note titled \"Older note\" and then a note titled \"Newer note\", neither pinned",
+     "keyword": "Given",
+     "observed": "state established through the app/API (as test-member)"
+    },
+    {
+     "text": "Mark the member opens the notes list",
+     "keyword": "When",
+     "observed": "action performed through the UI (creation of the preceding notes via API where noted)"
+    },
+    {
+     "text": "\"Newer note\" is listed above \"Older note\"",
+     "keyword": "Then",
+     "command": "agent-browser eval \"document.body.innerText\" (list page)",
+     "exit": 0,
+     "observed": "row order: Newer note before Older note"
+    }
+   ]
+  },
+  {
+   "feature": "F1 List and read notes",
+   "featureFile": "specs/validation/acceptance/F1-list-and-read-notes.feature",
+   "line": 23,
+   "rule": "A member opens a note to read its full body",
+   "scenario": "Opening a note shows title and body",
+   "tags": [
+    "@story-F1.2"
+   ],
+   "outcome": "passed",
+   "steps": [
+    {
+     "text": "Dana has created a note titled \"Sprint goals\" with the body \"Ship the pin feature by Friday\"",
+     "keyword": "Given",
+     "observed": "state established through the app/API (as test-member)"
+    },
+    {
+     "text": "Mark opens \"Sprint goals\" from the list",
+     "keyword": "When",
+     "observed": "action performed through the UI (creation of the preceding notes via API where noted)"
+    },
+    {
+     "text": "he reads the title \"Sprint goals\" and the body \"Ship the pin feature by Friday\"",
+     "keyword": "Then",
+     "command": "agent-browser wait --text \"Ship the pin feature by Friday\" --timeout 3000",
+     "exit": 0
+    }
+   ]
+  },
+  {
+   "feature": "F1 List and read notes",
+   "featureFile": "specs/validation/acceptance/F1-list-and-read-notes.feature",
+   "line": 31,
+   "rule": "A team with no notes sees an empty-list message",
+   "scenario": "No notes yet",
+   "tags": [
+    "@story-F1.3"
+   ],
+   "outcome": "passed",
+   "steps": [
+    {
+     "text": "the team has no notes",
+     "keyword": "Given",
+     "observed": "state established through the app/API (as test-member)"
+    },
+    {
+     "text": "Mark the member opens the notes list",
+     "keyword": "When",
+     "observed": "action performed through the UI (creation of the preceding notes via API where noted)"
+    },
+    {
+     "text": "the list shows a message that there are no notes yet",
+     "keyword": "Then",
+     "command": "agent-browser wait --text \"No notes yet\" --timeout 3000",
+     "exit": 0
+    }
+   ]
+  },
+  {
+   "feature": "F1 List and read notes",
+   "featureFile": "specs/validation/acceptance/F1-list-and-read-notes.feature",
+   "line": 40,
+   "rule": "Only signed-in members can see the notes",
+   "scenario": "A visitor who is not signed in",
+   "tags": [
+    "@story-F1.1",
+    "@negative"
+   ],
+   "outcome": "passed",
+   "steps": [
+    {
+     "text": "Dana has created a note titled \"Sprint goals\"",
+     "keyword": "Given",
+     "observed": "state established through the app/API (as test-member)"
+    },
+    {
+     "text": "a visitor who is not signed in opens the notes list",
+     "keyword": "When",
+     "observed": "action performed through the UI (creation of the preceding notes via API where noted)"
+    },
+    {
+     "text": "no notes are shown to the visitor",
+     "keyword": "Then",
+     "command": "agent-browser get count \"td\"",
+     "exit": 0,
+     "observed": "0 — fresh browser session opening /notes was redirected to the IdP sign-in page (http://development-idp.openchoreo.localhost:8080/gate/signin); no notes rendered"
+    }
+   ]
+  },
+  {
+   "feature": "F2 Create notes",
+   "featureFile": "specs/validation/acceptance/F2-create-notes.feature",
+   "line": 6,
+   "rule": "A member creates a note with a title and a body and lands on it",
+   "scenario": "Creating a complete note",
+   "tags": [
+    "@story-F2.1",
+    "@story-F2.3"
+   ],
+   "outcome": "passed",
+   "steps": [
+    {
+     "text": "Dana creates a note with the title \"Sprint goals\" and the body \"Ship the pin feature by Friday\"",
+     "keyword": "When",
+     "observed": "action performed through the UI (creation of the preceding notes via API where noted)"
+    },
+    {
+     "text": "Dana is looking at the note \"Sprint goals\" with the body \"Ship the pin feature by Friday\"",
+     "keyword": "Then",
+     "command": "agent-browser eval \"location.pathname+document.body.innerText\"",
+     "exit": 0,
+     "observed": "landed on /notes/<id> showing heading \"Sprint goals\" and body \"Ship the pin feature by Friday\""
+    }
+   ]
+  },
+  {
+   "feature": "F2 Create notes",
+   "featureFile": "specs/validation/acceptance/F2-create-notes.feature",
+   "line": 13,
+   "rule": "The body of a note is optional",
+   "scenario": "A note with a title only",
+   "tags": [
+    "@story-F2.1"
+   ],
+   "outcome": "passed",
+   "steps": [
+    {
+     "text": "Dana creates a note with the title \"Reminder\" and no body",
+     "keyword": "When",
+     "observed": "action performed through the UI (creation of the preceding notes via API where noted)"
+    },
+    {
+     "text": "Dana is looking at the note \"Reminder\" with an empty body",
+     "keyword": "Then",
+     "command": "curl -H \"Authorization: Bearer $TOKEN\" $API/notes",
+     "exit": 0,
+     "observed": "created note \"Reminder\" has body \"\" (UI shows \"This note has no body.\"); landed on the note page"
+    }
+   ]
+  },
+  {
+   "feature": "F2 Create notes",
+   "featureFile": "specs/validation/acceptance/F2-create-notes.feature",
+   "line": 21,
+   "rule": "A note cannot be saved without a title",
+   "scenario": "Saving without a title",
+   "tags": [
+    "@story-F2.2",
+    "@negative"
+   ],
+   "outcome": "passed",
+   "steps": [
+    {
+     "text": "Dana has opened a new team with no notes",
+     "keyword": "Given",
+     "observed": "state established through the app/API (as test-member)"
+    },
+    {
+     "text": "Dana tries to create a note with no title and the body \"Orphan text\"",
+     "keyword": "When",
+     "observed": "action performed through the UI (creation of the preceding notes via API where noted)"
+    },
+    {
+     "text": "the team still has no notes",
+     "keyword": "Then",
+     "command": "curl -H \"Authorization: Bearer $TOKEN\" $API/notes",
+     "exit": 0,
+     "observed": "{\"count\":0,\"data\":[]} — UI showed \"The note was not saved: title required\"; API direct POST with empty title returned 400 \"Title is required.\""
+    }
+   ]
+  },
+  {
+   "feature": "F2 Create notes",
+   "featureFile": "specs/validation/acceptance/F2-create-notes.feature",
+   "line": 30,
+   "rule": "A title is limited to 200 characters and a body to 10,000",
+   "scenario": "A title of 201 characters",
+   "tags": [
+    "@story-F2.1",
+    "@negative"
+   ],
+   "outcome": "passed",
+   "steps": [
+    {
+     "text": "Dana has opened a new team with no notes",
+     "keyword": "Given",
+     "observed": "state established through the app/API (as test-member)"
+    },
+    {
+     "text": "Dana tries to create a note whose title is 201 characters long",
+     "keyword": "When",
+     "observed": "action performed through the UI (creation of the preceding notes via API where noted)"
+    },
+    {
+     "text": "the team still has no notes",
+     "keyword": "Then",
+     "command": "curl -H \"Authorization: Bearer $TOKEN\" $API/notes",
+     "exit": 0,
+     "observed": "{\"count\":0,\"data\":[]} — POST with 201-char title returned 400 \"Title must be at most 200 characters.\" (attempted via API)"
+    }
+   ]
+  },
+  {
+   "feature": "F2 Create notes",
+   "featureFile": "specs/validation/acceptance/F2-create-notes.feature",
+   "line": 38,
+   "rule": "A new note appears in the team's list with its creator as author",
+   "scenario": "Another member sees the new note",
+   "tags": [
+    "@story-F2.4"
+   ],
+   "outcome": "blocked",
+   "steps": [
+    {
+     "text": "Dana has created a note titled \"Sprint goals\"",
+     "keyword": "Given",
+     "observed": "only one test login exists (test-member, Member); the scenario needs distinct users, so authorship/cross-user state cannot be established"
+    },
+    {
+     "text": "Mark the member opens the notes list",
+     "keyword": "When",
+     "observed": "not reached: only one test login exists (test-member, Member); the scenario needs distinct users, so authorship/cross-user state cannot be established"
+    },
+    {
+     "text": "the list shows \"Sprint goals\" with Dana as author",
+     "keyword": "Then",
+     "observed": "not reached: only one test login exists (test-member, Member); the scenario needs distinct users, so authorship/cross-user state cannot be established"
+    }
+   ]
+  },
+  {
+   "feature": "F2 Create notes",
+   "featureFile": "specs/validation/acceptance/F2-create-notes.feature",
+   "line": 47,
+   "rule": "Only signed-in members can create notes",
+   "scenario": "A visitor who is not signed in tries to create a note",
+   "tags": [
+    "@story-F2.1",
+    "@negative"
+   ],
+   "outcome": "unjudgeable",
+   "steps": [
+    {
+     "text": "the team has a known number of notes",
+     "keyword": "Given",
+     "observed": "precondition set up with test-member"
+    },
+    {
+     "text": "a visitor who is not signed in tries to create a note titled \"Sneaky\"",
+     "keyword": "When",
+     "observed": "UI redirects visitors to sign-in so no create control is reachable; the API attempt returned only the gateway 401 {\"error\":\"Unauthorized\",\"message\":\"Authentication failed\"}, which cannot show the app refused"
+    },
+    {
+     "text": "the number of notes is unchanged",
+     "keyword": "Then",
+     "observed": "cannot be judged: UI redirects visitors to sign-in so no create control is reachable; the API attempt returned only the gateway 401 {\"error\":\"Unauthorized\",\"message\":\"Authentication failed\"}, which cannot show the app refused"
+    }
+   ]
+  },
+  {
+   "feature": "F3 Pin notes",
+   "featureFile": "specs/validation/acceptance/F3-pin-notes.feature",
+   "line": 6,
+   "rule": "A pinned note is listed above notes that are not pinned",
+   "scenario": "Pinning an older note moves it to the top",
+   "tags": [
+    "@story-F3.1",
+    "@story-F3.3"
+   ],
+   "outcome": "passed",
+   "steps": [
+    {
+     "text": "Dana created a note titled \"Old but important\" and then a note titled \"Fresh chatter\", neither pinned",
+     "keyword": "Given",
+     "observed": "state established through the app/API (as test-member)"
+    },
+    {
+     "text": "Mark pins \"Old but important\"",
+     "keyword": "When",
+     "observed": "action performed through the UI (creation of the preceding notes via API where noted)"
+    },
+    {
+     "text": "\"Old but important\" is listed above \"Fresh chatter\" and is marked as pinned",
+     "keyword": "Then",
+     "command": "agent-browser eval \"document.body.innerText\" (list page after clicking Pin)",
+     "exit": 0,
+     "observed": "PUT /api/notes/<id>/pin 200; \"Old but important\" row shows Pinned and sits above \"Fresh chatter\""
+    }
+   ]
+  },
+  {
+   "feature": "F3 Pin notes",
+   "featureFile": "specs/validation/acceptance/F3-pin-notes.feature",
+   "line": 14,
+   "rule": "Any member may pin any note",
+   "scenario": "A member pins a note written by someone else",
+   "tags": [
+    "@story-F3.1"
+   ],
+   "outcome": "blocked",
+   "steps": [
+    {
+     "text": "Dana has created a note titled \"Sprint goals\"",
+     "keyword": "Given",
+     "observed": "only one test login exists (test-member, Member); the scenario needs distinct users, so authorship/cross-user state cannot be established"
+    },
+    {
+     "text": "Mark the member pins \"Sprint goals\"",
+     "keyword": "When",
+     "observed": "not reached: only one test login exists (test-member, Member); the scenario needs distinct users, so authorship/cross-user state cannot be established"
+    },
+    {
+     "text": "\"Sprint goals\" is pinned",
+     "keyword": "Then",
+     "observed": "not reached: only one test login exists (test-member, Member); the scenario needs distinct users, so authorship/cross-user state cannot be established"
+    }
+   ]
+  },
+  {
+   "feature": "F3 Pin notes",
+   "featureFile": "specs/validation/acceptance/F3-pin-notes.feature",
+   "line": 22,
+   "rule": "A pinned note can be unpinned",
+   "scenario": "Unpinning returns the note to its place by date",
+   "tags": [
+    "@story-F3.2"
+   ],
+   "outcome": "passed",
+   "steps": [
+    {
+     "text": "Dana created \"Old note\" and then \"New note\", and \"Old note\" is pinned",
+     "keyword": "Given",
+     "observed": "state established through the app/API (as test-member)"
+    },
+    {
+     "text": "Mark unpins \"Old note\"",
+     "keyword": "When",
+     "observed": "action performed through the UI (creation of the preceding notes via API where noted)"
+    },
+    {
+     "text": "\"New note\" is listed above \"Old note\" and \"Old note\" is not marked as pinned",
+     "keyword": "Then",
+     "command": "agent-browser eval \"document.body.innerText\" (list page after clicking Unpin)",
+     "exit": 0,
+     "observed": "DELETE /api/notes/<id>/pin 200; \"New note\" listed above \"Old note\", \"Old note\" shows Not pinned"
+    }
+   ]
+  },
+  {
+   "feature": "F3 Pin notes",
+   "featureFile": "specs/validation/acceptance/F3-pin-notes.feature",
+   "line": 30,
+   "rule": "Pinned notes are ordered newest first among themselves",
+   "scenario": "Two pinned notes",
+   "tags": [
+    "@story-F3.3"
+   ],
+   "outcome": "passed",
+   "steps": [
+    {
+     "text": "Dana created \"First pinned\" and then \"Second pinned\", and both are pinned",
+     "keyword": "Given",
+     "observed": "state established through the app/API (as test-member)"
+    },
+    {
+     "text": "Mark opens the notes list",
+     "keyword": "When",
+     "observed": "action performed through the UI (creation of the preceding notes via API where noted)"
+    },
+    {
+     "text": "\"Second pinned\" is listed above \"First pinned\"",
+     "keyword": "Then",
+     "command": "agent-browser eval \"document.body.innerText\" (list page)",
+     "exit": 0,
+     "observed": "\"Second pinned\" row appears before \"First pinned\", both Pinned"
+    }
+   ]
+  },
+  {
+   "feature": "F3 Pin notes",
+   "featureFile": "specs/validation/acceptance/F3-pin-notes.feature",
+   "line": 38,
+   "rule": "A pin is shared by the whole team",
+   "scenario": "Another member sees the pin",
+   "tags": [
+    "@story-F3.1",
+    "@story-F3.3"
+   ],
+   "outcome": "blocked",
+   "steps": [
+    {
+     "text": "Mark has pinned the note \"Sprint goals\"",
+     "keyword": "Given",
+     "observed": "only one test login exists (test-member, Member); the scenario needs distinct users, so authorship/cross-user state cannot be established"
+    },
+    {
+     "text": "Priya the member opens the notes list",
+     "keyword": "When",
+     "observed": "not reached: only one test login exists (test-member, Member); the scenario needs distinct users, so authorship/cross-user state cannot be established"
+    },
+    {
+     "text": "\"Sprint goals\" is listed first and marked as pinned for Priya",
+     "keyword": "Then",
+     "observed": "not reached: only one test login exists (test-member, Member); the scenario needs distinct users, so authorship/cross-user state cannot be established"
+    }
+   ]
+  },
+  {
+   "feature": "F3 Pin notes",
+   "featureFile": "specs/validation/acceptance/F3-pin-notes.feature",
+   "line": 46,
+   "rule": "A note shows whether it is pinned when read",
+   "scenario": "Reading a pinned note",
+   "tags": [
+    "@story-F3.4"
+   ],
+   "outcome": "blocked",
+   "steps": [
+    {
+     "text": "Mark has pinned the note \"Sprint goals\"",
+     "keyword": "Given",
+     "observed": "only one test login exists (test-member, Member); the scenario needs distinct users, so authorship/cross-user state cannot be established"
+    },
+    {
+     "text": "Priya opens \"Sprint goals\"",
+     "keyword": "When",
+     "observed": "not reached: only one test login exists (test-member, Member); the scenario needs distinct users, so authorship/cross-user state cannot be established"
+    },
+    {
+     "text": "the note is shown as pinned",
+     "keyword": "Then",
+     "observed": "not reached: only one test login exists (test-member, Member); the scenario needs distinct users, so authorship/cross-user state cannot be established"
+    }
+   ]
+  },
+  {
+   "feature": "F3 Pin notes",
+   "featureFile": "specs/validation/acceptance/F3-pin-notes.feature",
+   "line": 55,
+   "rule": "Only signed-in members can pin notes",
+   "scenario": "A visitor who is not signed in tries to pin",
+   "tags": [
+    "@story-F3.1",
+    "@negative"
+   ],
+   "outcome": "unjudgeable",
+   "steps": [
+    {
+     "text": "Dana has created a note titled \"Sprint goals\" that is not pinned",
+     "keyword": "Given",
+     "observed": "precondition set up with test-member"
+    },
+    {
+     "text": "a visitor who is not signed in tries to pin \"Sprint goals\"",
+     "keyword": "When",
+     "observed": "UI redirects visitors to sign-in so no pin control is reachable; no API attempt can yield anything but the gateway 401, which cannot show the app refused"
+    },
+    {
+     "text": "\"Sprint goals\" is still not pinned",
+     "keyword": "Then",
+     "observed": "cannot be judged: UI redirects visitors to sign-in so no pin control is reachable; no API attempt can yield anything but the gateway 401, which cannot show the app refused"
+    }
+   ]
+  }
+ ]
+}
