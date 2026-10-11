@@ -1,0 +1,4 @@
+apiVersion = "agentic-engineer/v1"
+name = "pf-notes-1821"
+createdAt = "2026-10-11T03:21:16Z"
+idea = "Team notes: a small web app with an API. F1: a signed-in member lists the team's notes and opens one to read it. F2: a member creates a note with a title and a body (title required). F3: a member marks a note as pinned, and pinned notes show first in the list. One role, Member. Sign-in with the platform's identity provider."
