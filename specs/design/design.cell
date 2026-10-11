@@ -1,0 +1,15 @@
+title Team Notes
+
+component notes-webapp as "Team Notes Web App" web-application
+component notes-api as "Team Notes API" service
+component notes-db as "Notes Database" database
+
+east user-auth as "Thunder Auth" identity-server
+
+north -> notes-webapp
+north -> notes-api
+
+notes-webapp -> notes-api
+notes-webapp -> user-auth
+notes-api -> user-auth
+notes-api -> notes-db

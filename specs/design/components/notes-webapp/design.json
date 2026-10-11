@@ -1,0 +1,17 @@
+{
+  "name": "notes-webapp",
+  "type": "web-application",
+  "version": "0.1.0",
+  "language": "TypeScript",
+  "buildpack": "docker",
+  "appPath": "notes-webapp",
+  "entrypoint": "deployment/web-application",
+  "exposure": "internet",
+  "dependencies": [
+    { "kind": "component", "name": "notes-api", "description": "Lists, reads, creates and pins notes." },
+    { "kind": "platform-resource", "name": "user-auth", "resourceType": "thunder-app", "description": "Signs members in through the platform identity provider." }
+  ],
+  "description": "The single-page Team Notes app for signed-in members: notes list with pinned notes on top, a note reading view, a create-note form, and pin/unpin controls. Calls only notes-api. Does not hold any data or credentials.",
+  "stories": ["F1.1", "F1.2", "F1.3", "F2.1", "F2.2", "F2.3", "F2.4", "F3.1", "F3.2", "F3.3", "F3.4"],
+  "skillsPinned": ["react-webapp", "oxygen-ui-design-system", "thunder-authentication"]
+}

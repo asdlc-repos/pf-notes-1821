@@ -1,0 +1,174 @@
+openapi: 3.0.3
+info:
+  title: Team Notes API
+  version: 0.1.0
+servers:
+  - url: /
+security:
+  - oauth2: []
+paths:
+  /notes:
+    get:
+      operationId: listNotes
+      summary: Every note, pinned first then newest first
+      security:
+        - oauth2: [notes:read]
+      responses:
+        '200':
+          description: All notes in display order.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [count, data]
+                properties:
+                  count: { type: integer, description: total number of notes }
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Note' }
+        '401':
+          description: Not signed in or missing permission.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+    post:
+      operationId: createNote
+      summary: Create a note
+      security:
+        - oauth2: [notes:create]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NoteCreate' }
+      responses:
+        '201':
+          description: The created note.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Note' }
+        '400':
+          description: Title missing or a field too long.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401':
+          description: Not signed in or missing permission.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+  /notes/{noteId}:
+    get:
+      operationId: getNote
+      summary: One note with its full body
+      security:
+        - oauth2: [notes:read]
+      parameters:
+        - $ref: '#/components/parameters/NoteId'
+      responses:
+        '200':
+          description: The note.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Note' }
+        '401':
+          description: Not signed in or missing permission.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '404':
+          description: No such note.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+  /notes/{noteId}/pin:
+    put:
+      operationId: pinNote
+      summary: Pin a note
+      security:
+        - oauth2: [notes:pin]
+      parameters:
+        - $ref: '#/components/parameters/NoteId'
+      responses:
+        '200':
+          description: The note, now pinned.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Note' }
+        '401':
+          description: Not signed in or missing permission.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '404':
+          description: No such note.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+    delete:
+      operationId: unpinNote
+      summary: Unpin a note
+      security:
+        - oauth2: [notes:pin]
+      parameters:
+        - $ref: '#/components/parameters/NoteId'
+      responses:
+        '200':
+          description: The note, now unpinned.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Note' }
+        '401':
+          description: Not signed in or missing permission.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '404':
+          description: No such note.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+components:
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/authorize
+          tokenUrl: /oauth2/token
+          scopes:
+            notes:read: List every note and read one
+            notes:create: Create a note
+            notes:pin: Pin or unpin any note
+  parameters:
+    NoteId:
+      name: noteId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+      description: Note identifier.
+  schemas:
+    Note:
+      type: object
+      required: [id, title, body, authorName, createdAt, pinned]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string, maxLength: 200 }
+        body: { type: string, maxLength: 10000, description: may be empty }
+        authorName: { type: string, description: display name of the author, filled by the service }
+        createdAt: { type: string, format: date-time }
+        pinned: { type: boolean }
+    NoteCreate:
+      type: object
+      required: [title]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 200 }
+        body: { type: string, maxLength: 10000 }
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: integer, description: HTTP or application error code }
+        message: { type: string, description: short human-readable label }
+        description: { type: string, description: detailed explanation }
+        moreInfo: { type: string, description: URI to documentation }
