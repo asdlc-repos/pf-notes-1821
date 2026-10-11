@@ -4,6 +4,7 @@
 import ballerina/constraint;
 import ballerina/http;
 import ballerina/log;
+import ballerina/uuid;
 
 listener http:Listener ep0 = new (9090);
 
@@ -72,8 +73,24 @@ service http:InterceptableService / on ep0 {
     # http:Created (The created note.)
     # http:BadRequest (Title missing or a field too long.)
     # http:Unauthorized (Not signed in or missing permission.)
-    resource function post notes(http:RequestContext ctx, @http:Payload NoteCreate payload) returns Note|ErrorBadRequest|ErrorUnauthorized|http:NotImplemented|http:Unauthorized {
-        return notImplemented(ctx);
+    resource function post notes(http:RequestContext ctx, http:Request req) returns http:Created|ErrorBadRequest|ErrorUnauthorized|http:NotImplemented|http:Unauthorized|http:InternalServerError {
+        GatewayCaller|http:Unauthorized caller = requireGatewayCaller(ctx);
+        if caller is http:Unauthorized {
+            return caller;
+        }
+        NoteCreate|string input = parseNoteCreate(req);
+        if input is string {
+            return <ErrorBadRequest>{body: {code: 400, message: "Invalid note", description: input}};
+        }
+        string title = input.title.trim();
+        string noteBody = input?.body ?: "";
+        string authorName = caller.username.trim() == "" ? "Unknown member" : caller.username.trim();
+        Note|error created = insertNote(uuid:createType1AsString(), title, noteBody, caller.userId, authorName);
+        if created is error {
+            log:printError("creating note failed", 'error = created);
+            return http:INTERNAL_SERVER_ERROR;
+        }
+        return <http:Created>{body: created, headers: {"Location": "/notes/" + created.id}};
     }
 
     # Pin a note
@@ -133,9 +150,7 @@ public type Error record {
 };
 
 public type NoteCreate record {
-    @constraint:String {maxLength: 200, minLength: 1}
     string title;
-    @constraint:String {maxLength: 10000}
     string body?;
 };
 
@@ -152,3 +167,30 @@ public type ErrorUnauthorized record {|
 final string:RegExp uuidPattern = re `^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`;
 
 function isUuid(string value) returns boolean => uuidPattern.isFullMatch(value);
+
+const int MAX_TITLE_LENGTH = 200;
+const int MAX_BODY_LENGTH = 10000;
+
+// Returns the validated request, or the reason it is invalid. Validation is done here
+// so every violation answers with the shared Error schema.
+function parseNoteCreate(http:Request req) returns NoteCreate|string {
+    json|error raw = req.getJsonPayload();
+    if raw is error {
+        return "Request body must be a JSON object.";
+    }
+    NoteCreate|error parsed = raw.cloneWithType();
+    if parsed is error {
+        return "Title is required and title and body must be strings.";
+    }
+    if parsed.title.trim() == "" {
+        return "Title is required.";
+    }
+    if parsed.title.trim().length() > MAX_TITLE_LENGTH {
+        return "Title must be at most 200 characters.";
+    }
+    string noteBody = parsed?.body ?: "";
+    if noteBody.length() > MAX_BODY_LENGTH {
+        return "Body must be at most 10,000 characters.";
+    }
+    return parsed;
+}

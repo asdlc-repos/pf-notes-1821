@@ -85,3 +85,12 @@ function fetchNote(string id) returns Note?|error {
     }
     return row;
 }
+
+function insertNote(string id, string title, string noteBody, string authorId, string authorName) returns Note|error {
+    postgresql:Client db = check getReadyDb();
+    sql:ParameterizedQuery q = `INSERT INTO notes (id, title, body, author_id, author_name, pinned)
+        VALUES (${id}::uuid, ${title}, ${noteBody}, ${authorId}, ${authorName}, FALSE)
+        RETURNING id::text AS id, title, body, author_name AS "authorName",
+        to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "createdAt", pinned`;
+    return db->queryRow(q);
+}
