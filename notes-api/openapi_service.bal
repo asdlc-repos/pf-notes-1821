@@ -3,6 +3,7 @@
 
 import ballerina/constraint;
 import ballerina/http;
+import ballerina/log;
 
 listener http:Listener ep0 = new (9090);
 
@@ -25,8 +26,17 @@ service http:InterceptableService / on ep0 {
     # + return - returns can be any of following types 
     # http:Ok (All notes in display order.)
     # http:Unauthorized (Not signed in or missing permission.)
-    resource function get notes(http:RequestContext ctx) returns inline_response_200|ErrorUnauthorized|http:NotImplemented|http:Unauthorized {
-        return notImplemented(ctx);
+    resource function get notes(http:RequestContext ctx) returns inline_response_200|ErrorUnauthorized|http:NotImplemented|http:Unauthorized|http:InternalServerError {
+        GatewayCaller|http:Unauthorized caller = requireGatewayCaller(ctx);
+        if caller is http:Unauthorized {
+            return caller;
+        }
+        Note[]|error notes = fetchNotes();
+        if notes is error {
+            log:printError("listing notes failed", 'error = notes);
+            return http:INTERNAL_SERVER_ERROR;
+        }
+        return {count: notes.length(), data: notes};
     }
 
     # One note with its full body
@@ -36,8 +46,24 @@ service http:InterceptableService / on ep0 {
     # http:Ok (The note.)
     # http:Unauthorized (Not signed in or missing permission.)
     # http:NotFound (No such note.)
-    resource function get notes/[string noteId](http:RequestContext ctx) returns Note|ErrorUnauthorized|ErrorNotFound|http:NotImplemented|http:Unauthorized {
-        return notImplemented(ctx);
+    resource function get notes/[string noteId](http:RequestContext ctx) returns Note|ErrorUnauthorized|ErrorNotFound|http:NotImplemented|http:Unauthorized|http:InternalServerError {
+        GatewayCaller|http:Unauthorized caller = requireGatewayCaller(ctx);
+        if caller is http:Unauthorized {
+            return caller;
+        }
+        ErrorNotFound notFound = {body: {code: 404, message: "Note not found"}};
+        if !isUuid(noteId) {
+            return notFound;
+        }
+        Note?|error note = fetchNote(noteId);
+        if note is error {
+            log:printError("reading note failed", 'error = note);
+            return http:INTERNAL_SERVER_ERROR;
+        }
+        if note is () {
+            return notFound;
+        }
+        return note;
     }
 
     # Create a note
@@ -122,3 +148,7 @@ public type ErrorUnauthorized record {|
     *http:Unauthorized;
     Error body;
 |};
+
+final string:RegExp uuidPattern = re `^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`;
+
+function isUuid(string value) returns boolean => uuidPattern.isFullMatch(value);

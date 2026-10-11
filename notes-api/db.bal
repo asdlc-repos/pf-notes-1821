@@ -51,3 +51,37 @@ function runMigration() returns () {
 }
 
 final () dbReady = runMigration();
+
+// Returns a ready client, creating the notes table if the startup migration did not run.
+function getReadyDb() returns postgresql:Client|error {
+    postgresql:Client db = check getDb();
+    error? ensured = migrate();
+    if ensured is error {
+        return ensured;
+    }
+    return db;
+}
+
+function fetchNotes() returns Note[]|error {
+    postgresql:Client db = check getReadyDb();
+    sql:ParameterizedQuery q = `SELECT id::text AS id, title, body, author_name AS "authorName",
+        to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "createdAt", pinned
+        FROM notes ORDER BY pinned DESC, created_at DESC, id`;
+    stream<Note, sql:Error?> rows = db->query(q);
+    Note[] notes = check from Note n in rows
+        select n;
+    return notes;
+}
+
+// Returns () when no note has this id.
+function fetchNote(string id) returns Note?|error {
+    postgresql:Client db = check getReadyDb();
+    sql:ParameterizedQuery q = `SELECT id::text AS id, title, body, author_name AS "authorName",
+        to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "createdAt", pinned
+        FROM notes WHERE id = ${id}::uuid`;
+    Note|sql:Error row = db->queryRow(q);
+    if row is sql:NoRowsError {
+        return ();
+    }
+    return row;
+}
