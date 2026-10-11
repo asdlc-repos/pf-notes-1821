@@ -94,3 +94,16 @@ function insertNote(string id, string title, string noteBody, string authorId, s
         to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "createdAt", pinned`;
     return db->queryRow(q);
 }
+
+// Returns () when no note has this id.
+function setPinned(string id, boolean pinned) returns Note?|error {
+    postgresql:Client db = check getReadyDb();
+    sql:ParameterizedQuery q = `UPDATE notes SET pinned = ${pinned} WHERE id = ${id}::uuid
+        RETURNING id::text AS id, title, body, author_name AS "authorName",
+        to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "createdAt", pinned`;
+    Note|sql:Error row = db->queryRow(q);
+    if row is sql:NoRowsError {
+        return ();
+    }
+    return row;
+}

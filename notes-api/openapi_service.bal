@@ -18,8 +18,8 @@ service http:InterceptableService / on ep0 {
     # http:Ok (The note, now unpinned.)
     # http:Unauthorized (Not signed in or missing permission.)
     # http:NotFound (No such note.)
-    resource function delete notes/[string noteId]/pin(http:RequestContext ctx) returns Note|ErrorUnauthorized|ErrorNotFound|http:NotImplemented|http:Unauthorized {
-        return notImplemented(ctx);
+    resource function delete notes/[string noteId]/pin(http:RequestContext ctx) returns Note|ErrorUnauthorized|ErrorNotFound|http:Unauthorized|http:InternalServerError {
+        return changePin(ctx, noteId, false);
     }
 
     # Every note, pinned first then newest first
@@ -100,18 +100,30 @@ service http:InterceptableService / on ep0 {
     # http:Ok (The note, now pinned.)
     # http:Unauthorized (Not signed in or missing permission.)
     # http:NotFound (No such note.)
-    resource function put notes/[string noteId]/pin(http:RequestContext ctx) returns Note|ErrorUnauthorized|ErrorNotFound|http:NotImplemented|http:Unauthorized {
-        return notImplemented(ctx);
+    resource function put notes/[string noteId]/pin(http:RequestContext ctx) returns Note|ErrorUnauthorized|ErrorNotFound|http:Unauthorized|http:InternalServerError {
+        return changePin(ctx, noteId, true);
     }
 }
 
-// Scaffold for the foundation item: identity is required, feature logic follows in later items.
-function notImplemented(http:RequestContext ctx) returns http:NotImplemented|http:Unauthorized {
+// Sets the shared pinned flag. The gateway already enforced notes:pin; a missing note is a 404.
+function changePin(http:RequestContext ctx, string noteId, boolean pinned) returns Note|ErrorNotFound|http:Unauthorized|http:InternalServerError {
     GatewayCaller|http:Unauthorized caller = requireGatewayCaller(ctx);
     if caller is http:Unauthorized {
         return caller;
     }
-    return http:NOT_IMPLEMENTED;
+    ErrorNotFound notFound = {body: {code: 404, message: "Note not found"}};
+    if !isUuid(noteId) {
+        return notFound;
+    }
+    Note?|error note = setPinned(noteId, pinned);
+    if note is error {
+        log:printError("changing pin failed", 'error = note);
+        return http:INTERNAL_SERVER_ERROR;
+    }
+    if note is () {
+        return notFound;
+    }
+    return note;
 }
 
 public type ErrorNotFound record {|
