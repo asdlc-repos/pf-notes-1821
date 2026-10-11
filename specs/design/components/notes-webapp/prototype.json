@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 3,
+  "name": "Team Notes",
+  "entryScreen": "screen.notes",
+  "roles": [{ "id": "Member", "name": "Member" }],
+  "states": [
+    { "id": "state.default", "name": "Default" },
+    { "id": "state.empty", "name": "No notes yet" },
+    { "id": "state.validation-error", "name": "Title missing" },
+    { "id": "state.failed", "name": "Notes unavailable" }
+  ],
+  "screens": [
+    { "id": "screen.notes", "name": "Notes", "roleIds": ["Member"] },
+    { "id": "screen.note", "name": "Note", "roleIds": ["Member"] },
+    { "id": "screen.new-note", "name": "New note", "roleIds": ["Member"] },
+    { "id": "screen.account", "name": "Account", "roleIds": ["Member"] },
+    { "id": "screen.settings", "name": "Settings", "roleIds": ["Member"] },
+    { "id": "screen.signed-out", "name": "Signed out", "roleIds": ["Member"] }
+  ],
+  "flows": [
+    { "id": "flow.browse", "name": "Browse and read notes", "roleId": "Member", "screenIds": ["screen.notes", "screen.note"] },
+    { "id": "flow.create-and-pin", "name": "Create and pin a note", "roleId": "Member", "screenIds": ["screen.notes", "screen.new-note", "screen.note"] }
+  ]
+}
