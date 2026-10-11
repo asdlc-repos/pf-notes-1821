@@ -130,8 +130,10 @@ The platform does not make your branch. Find it in this order:
 
 ## 2 · Work the issues
 
-Work one bug or conflict issue, or one item of the build issue, at a time. For
-each:
+Work one bug or conflict issue, or one item of the build issue, at a time.
+First, put each of them in the task list, one entry each, in the order that you
+will work them. The person who watches the run reads its progress there. Then,
+for each:
 
 1. Read what it asks. For an item, read its feature file
    (`specs/requirements/features/F<n>-*.md`) and its line in the checklist; for
@@ -142,11 +144,11 @@ each:
    `prototype`'s `references/implementing.md`.
 2. Resolve the dependencies that only you can resolve (see Dependencies that
    only you can resolve).
-3. Dispatch its wave: one build subagent for each component that it names
-   (see Fan-out to subagents).
+3. Mark its task-list entry in progress. Then dispatch its wave: one build
+   subagent for each component that it names (see Fan-out to subagents).
 4. When a report arrives, do the steps in When a report arrives.
-5. When it is committed and ticked, get the working set again, and start the
-   next one.
+5. When it is committed and ticked, mark its task-list entry completed. Get
+   the working set again, and start the next one.
 
 A wave builds its own item and nothing more. Do not give it work of a later
 item, not even to make a component build or look complete sooner: the later
@@ -168,9 +170,6 @@ this one workspace (no worktrees). Then end your turn. Each subagent wakes you w
 
 **Only the commit waits for the whole item.** A subagent that did not report
 can still be writing files.
-
-Keep your plan in the task list: one entry for each item and for each bug or
-conflict issue. Mark the entry completed when you commit its work.
 
 #### The build prompt
 
