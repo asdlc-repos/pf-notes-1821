@@ -17,6 +17,8 @@ import {
 import { notesApi } from "../api";
 import type { components } from "../generated/notes-api";
 import { formatDate } from "../format";
+import { setPinned } from "../pinNote";
+import { Can } from "../authz/gates";
 
 type Note = components["schemas"]["Note"];
 
@@ -47,6 +49,22 @@ export function NotesPage(): ReactElement {
     };
   }, [attempt]);
 
+  const [pinError, setPinError] = useState(false);
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  async function togglePin(n: Note) {
+    setBusyId(n.id);
+    setPinError(false);
+    const updated = await setPinned(n.id, !n.pinned);
+    setBusyId(null);
+    if (!updated) {
+      setPinError(true);
+      return;
+    }
+    // Pinned first, then newest first: reload to take the server's order.
+    setAttempt((a) => a + 1);
+  }
+
   const notes = state.kind === "ready" ? state.notes : [];
   const newNote = (
     <Button variant="contained" onClick={() => navigate("/notes/new")}>
@@ -76,6 +94,13 @@ export function NotesPage(): ReactElement {
         </Alert>
       )}
 
+      {pinError && (
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setPinError(false)}>
+          <AlertTitle>Pin failed</AlertTitle>
+          The note could not be pinned or unpinned. Try again.
+        </Alert>
+      )}
+
       <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
         <Typography variant="h6">Notes</Typography>
         {state.kind === "ready" && <Chip size="small" label={notes.length} />}
@@ -98,12 +123,13 @@ export function NotesPage(): ReactElement {
                 <ListingTable.Cell>Author</ListingTable.Cell>
                 <ListingTable.Cell>Created</ListingTable.Cell>
                 <ListingTable.Cell>Pinned</ListingTable.Cell>
+                <ListingTable.Cell align="right">Actions</ListingTable.Cell>
               </ListingTable.Row>
             </ListingTable.Head>
             <ListingTable.Body>
               {state.kind === "ready" && notes.length === 0 && (
                 <ListingTable.Row>
-                  <ListingTable.Cell colSpan={4}>
+                  <ListingTable.Cell colSpan={5}>
                     <Card variant="outlined">
                       <ListingTable.EmptyState
                         title="No notes yet"
@@ -126,6 +152,18 @@ export function NotesPage(): ReactElement {
                       color={n.pinned ? "info" : "default"}
                       variant={n.pinned ? "filled" : "outlined"}
                     />
+                  </ListingTable.Cell>
+                  <ListingTable.Cell align="right" onClick={(e) => e.stopPropagation()}>
+                    <Can op="PUT /notes/{noteId}/pin">
+                      <Button
+                        size="small"
+                        variant="text"
+                        disabled={busyId === n.id}
+                        onClick={() => void togglePin(n)}
+                      >
+                        {n.pinned ? "Unpin" : "Pin"}
+                      </Button>
+                    </Can>
                   </ListingTable.Cell>
                 </ListingTable.Row>
               ))}

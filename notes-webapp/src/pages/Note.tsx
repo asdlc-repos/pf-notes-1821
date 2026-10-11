@@ -20,6 +20,8 @@ import {
 import { notesApi } from "../api";
 import type { components } from "../generated/notes-api";
 import { formatDate } from "../format";
+import { setPinned } from "../pinNote";
+import { Can } from "../authz/gates";
 
 type Note = components["schemas"]["Note"];
 
@@ -55,6 +57,18 @@ export function NotePage(): ReactElement {
       cancelled = true;
     };
   }, [id, attempt]);
+
+  const [pinError, setPinError] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  async function togglePin(current: Note) {
+    setBusy(true);
+    setPinError(false);
+    const updated = await setPinned(current.id, !current.pinned);
+    setBusy(false);
+    if (updated) setState({ kind: "ready", note: updated });
+    else setPinError(true);
+  }
 
   const note = state.kind === "ready" ? state.note : null;
 
@@ -99,7 +113,20 @@ export function NotePage(): ReactElement {
         <>
           <PageTitle>
             <PageTitle.Header>{note.title}</PageTitle.Header>
+            <PageTitle.Actions>
+              <Can op="PUT /notes/{noteId}/pin">
+                <Button variant="outlined" disabled={busy} onClick={() => void togglePin(note)}>
+                  {note.pinned ? "Unpin" : "Pin"}
+                </Button>
+              </Can>
+            </PageTitle.Actions>
           </PageTitle>
+          {pinError && (
+            <Alert severity="error" sx={{ mb: 2 }} onClose={() => setPinError(false)}>
+              <AlertTitle>Pin failed</AlertTitle>
+              The note could not be pinned or unpinned. Try again.
+            </Alert>
+          )}
           <Card variant="outlined" sx={{ mb: 2 }}>
             <CardHeader title="Details" />
             <CardContent>
